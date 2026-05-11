@@ -64,6 +64,34 @@ Prebuilt binaries are available on the [GitHub releases page](https://github.com
 cargo install --git https://github.com/orhun/ratty
 ```
 
+### Nix (flake)
+
+A flake is provided for reproducible builds and a dev shell with all system
+libraries (Wayland, X11, Vulkan, ALSA, fontconfig, udev) and a pinned Rust
+toolchain. Requires Nix with flakes enabled.
+
+Run without installing:
+
+```bash
+nix run github:orhun/ratty
+```
+
+Build and install into your profile:
+
+```bash
+nix build github:orhun/ratty
+./result/bin/ratty
+```
+
+Hack on the source:
+
+```bash
+git clone https://github.com/orhun/ratty
+cd ratty
+nix develop          # drops you into a shell with cargo, rustc, and all deps
+cargo run --release
+```
+
 ## Configuration
 
 The default configuration file is available in [`config/ratty.toml`](config/ratty.toml).

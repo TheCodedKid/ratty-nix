@@ -1,2 +1,5 @@
-/target
+target/
 assets/img
+/result
+/result-*
+.direnv/
