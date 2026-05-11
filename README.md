@@ -92,6 +92,61 @@ nix develop          # drops you into a shell with cargo, rustc, and all deps
 cargo run --release
 ```
 
+#### Use as a flake input
+
+Add ratty as an input in your own `flake.nix`:
+
+```nix
+{
+  inputs.ratty.url = "github:orhun/ratty";
+
+  # Inside your outputs, you can now reference:
+  #   inputs.ratty.packages.${system}.ratty            (the binary)
+  #   inputs.ratty.overlays.default                    (adds `pkgs.ratty`)
+  #   inputs.ratty.homeManagerModules.default          (HM module)
+}
+```
+
+#### home-manager
+
+A home-manager module is exposed at `homeManagerModules.default`. It installs
+ratty and (optionally) renders `~/.config/ratty/ratty.toml` from a Nix
+attribute set so your config is declarative.
+
+```nix
+# flake.nix (snippet)
+{
+  inputs = {
+    nixpkgs.url        = "github:NixOS/nixpkgs/nixos-unstable";
+    home-manager.url   = "github:nix-community/home-manager";
+    home-manager.inputs.nixpkgs.follows = "nixpkgs";
+    ratty.url          = "github:orhun/ratty";
+  };
+
+  outputs = { nixpkgs, home-manager, ratty, ... }: {
+    homeConfigurations."you" = home-manager.lib.homeManagerConfiguration {
+      pkgs = import nixpkgs { system = "x86_64-linux"; };
+      modules = [
+        ratty.homeManagerModules.default
+        {
+          programs.ratty = {
+            enable = true;
+            settings = {
+              window = { width = 1280; height = 800; opacity = 0.85; };
+              font   = { family = "JetBrainsMono Nerd Font"; size = 16; };
+              cursor.animation.spin_speed = 2.0;
+              # any field accepted by config/ratty.toml works here
+            };
+          };
+        }
+      ];
+    };
+  };
+}
+```
+
+Leave `settings = { };` to keep ratty's built-in defaults.
+
 ## Configuration
 
 The default configuration file is available in [`config/ratty.toml`](config/ratty.toml).
