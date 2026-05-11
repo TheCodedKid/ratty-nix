@@ -10,7 +10,7 @@ default_rows = 32
 scrollback = 2000
 
 [shell]
-program = "/bin/bash"
+# program = "/bin/bash"   # unset → uses $SHELL, falling back to /bin/sh
 args = []
 
 [env]
