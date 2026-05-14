@@ -107,6 +107,33 @@ pub fn spawn_cursor_model(
 ///
 /// Returns an error if the asset cannot be resolved or parsed.
 pub fn load_object_source(path: &Path) -> anyhow::Result<(String, ObjectSource)> {
+    if path.is_absolute() && path.exists() {
+        let extension = path
+            .extension()
+            .and_then(|ext| ext.to_str())
+            .map(|ext| ext.to_ascii_lowercase())
+            .unwrap_or_default();
+        let display = path.display().to_string();
+        match extension.as_str() {
+            "obj" => {
+                let meshes = load_obj_meshes_from_path(path)?;
+                return Ok((display, ObjectSource::Obj(meshes)));
+            }
+            "glb" | "gltf" => {
+                let file_name = path
+                    .file_name()
+                    .and_then(|name| name.to_str())
+                    .context("absolute model path has no file name")?;
+                let bytes = std::fs::read(path)
+                    .with_context(|| format!("failed to read {}", path.display()))?;
+                let candidate = format!("objects/{file_name}");
+                let asset_path = ensure_scene_asset_path(&candidate, Some((file_name, &bytes)))?;
+                return Ok((display, ObjectSource::Gltf(asset_path)));
+            }
+            _ => bail!("unsupported object format for {}", display),
+        }
+    }
+
     let candidate = object_asset_path(path)?;
     let extension = Path::new(&candidate)
         .extension()
